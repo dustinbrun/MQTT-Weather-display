@@ -1,0 +1,210 @@
+[
+    {
+        "id": "5b547237.9a52bc",
+        "type": "tab",
+        "label": "Weather Display",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a2ac16c5.ad4e58",
+        "type": "mqtt in",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "topic": "wetter_display/get",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "3bfdb428.8d8e3c",
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "20125342.344d4c"
+            ]
+        ]
+    },
+    {
+        "id": "72a13cf3.9527c4",
+        "type": "mqtt out",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "topic": "wetter_display/set",
+        "qos": "2",
+        "retain": "false",
+        "broker": "3bfdb428.8d8e3c",
+        "x": 1090,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "20125342.344d4c",
+        "type": "function",
+        "z": "5b547237.9a52bc",
+        "name": "Read Global Variables",
+        "func": "var output = {};\noutput.topic = \"Wetter_Display_out\";\n\noutput.payload = { \n    \"Temp_2m\" : global.get(\"Temperatur_2m\"), \n    \"Temp_0m\" : global.get(\"Temperatur_Boden\"),\n    \"Pressure\" : global.get(\"Luftdruck\"),\n    \"Humidity\" : global.get(\"Luftfeuchte_rel\"),\n    \"Dewpoint\" : global.get(\"Taupunkt\"),\n    \"Luminosity\" : global.get(\"Helligkeit_lux\"),\n    \"Wind_kmh\" : global.get(\"Wind_kmh\"),\n    \"Wind_r\" : global.get(\"Windr_wort\")\n};\n\nreturn output;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 600,
+        "y": 140,
+        "wires": [
+            [
+                "b9edddb6.383fa"
+            ]
+        ]
+    },
+    {
+        "id": "12b19c78.f0786c",
+        "type": "inject",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "topic": "",
+        "payload": "1",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 210,
+        "y": 240,
+        "wires": [
+            [
+                "42d784a7.9a7da4"
+            ]
+        ]
+    },
+    {
+        "id": "4c2cf417.9ae95c",
+        "type": "debug",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 1070,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "b9edddb6.383fa",
+        "type": "json",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 790,
+        "y": 140,
+        "wires": [
+            [
+                "4c2cf417.9ae95c",
+                "72a13cf3.9527c4"
+            ]
+        ]
+    },
+    {
+        "id": "42d784a7.9a7da4",
+        "type": "openweathermap",
+        "z": "5b547237.9a52bc",
+        "name": "Current Weather",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "Chemnitz",
+        "country": "Germany",
+        "language": "de",
+        "x": 390,
+        "y": 240,
+        "wires": [
+            [
+                "67d683df.1e7e6c"
+            ]
+        ]
+    },
+    {
+        "id": "67d683df.1e7e6c",
+        "type": "function",
+        "z": "5b547237.9a52bc",
+        "name": "Processing",
+        "func": "var output = {};\noutput.topic = \"Wetter_Display_out\";\n\nvar degToCard = function(deg){\nif (deg>11.25 && deg<=33.75){\nreturn \"NNO\";\n  }else if (deg>33.75 && deg<56.25){\nreturn \"NO\";\n  }else if (deg>56.25 && deg<78.75){\nreturn \"OON\";\n  }else if (deg>78.75 && deg<101.25){\nreturn \"O\";\n  }else if (deg>101.25 && deg<123.75){\nreturn \"OOS\";\n  }else if (deg>123.75 && deg<146.25){\nreturn \"SO\";\n  }else if (deg>146.25 && deg<168.75){\nreturn \"SSO\";\n  }else if (deg>168.75 && deg<191.25){\nreturn \"S\";\n  }else if (deg>191.25 && deg<213.75){\nreturn \"SSW\";\n  }else if (deg>213.75 && deg<236.25){\nreturn \"SW\";\n  }else if (deg>236.25 && deg<258.75){\nreturn \"WWS\";\n  }else if (deg>258.75 && deg<281.25){\nreturn \"W\";\n  }else if (deg>281.25 && deg<303.75){\nreturn \"WWN\";\n  }else if (deg>303.75 && deg<326.25){\nreturn \"NW\";\n  }else if (deg>326.25 && deg<348.75){\nreturn \"NNW\";\n  }else{\nreturn \"N\"; \n  }\n}\n\n\noutput.payload = { \n    \"Temp_2m\" : msg.payload.tempc, \n    \"Temp_0m\" : \"0\",\n    \"Pressure\" : msg.payload.pressure,\n    \"Humidity\" : msg.payload.humidity,\n    \"Dewpoint\" : \"0\",\n    \"Luminosity\" : \"0\",\n    \"Wind_kmh\" : msg.payload.windspeed,\n    \"Wind_r\" : degToCard(msg.payload.winddirection)\n};\n\nreturn output;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 570,
+        "y": 240,
+        "wires": [
+            [
+                "951d81bf.31f23"
+            ]
+        ]
+    },
+    {
+        "id": "129a08cd.8b738f",
+        "type": "comment",
+        "z": "5b547237.9a52bc",
+        "name": "Open Weather API Source",
+        "info": "Modified from:\nhttps://flows.nodered.org/flow/b5b7d5da14d24e71de447e6aa290937e/in/dbKdTXPTnHBx ",
+        "x": 410,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "cb2cc43f.e09de8",
+        "type": "inject",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "topic": "",
+        "payload": "1",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 390,
+        "y": 100,
+        "wires": [
+            [
+                "20125342.344d4c"
+            ]
+        ]
+    },
+    {
+        "id": "951d81bf.31f23",
+        "type": "json",
+        "z": "5b547237.9a52bc",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 790,
+        "y": 240,
+        "wires": [
+            [
+                "4c2cf417.9ae95c",
+                "72a13cf3.9527c4"
+            ]
+        ]
+    },
+    {
+        "id": "3bfdb428.8d8e3c",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "MQTT_SERVER",
+        "broker": "192.168.123.456",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    }
+]
