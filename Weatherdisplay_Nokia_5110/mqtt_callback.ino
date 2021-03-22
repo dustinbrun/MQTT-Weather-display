@@ -32,7 +32,10 @@ void reconnect()
   while (!client.connected())
   {
     if (client.connect("WetterDisplay", mqtt_user, mqtt_pass))
+    {
       client.subscribe("wetter_display/set");
+      updatedisplay();
+    }
     else
     {
       display_error("MQTT Error");
